@@ -76,6 +76,18 @@ fn main() {
                 stream.flush().unwrap();
                 return;
             }
+            "!ls" => {
+                stream.write("LIST\r\n".as_bytes()).unwrap();
+                stream.flush().unwrap();
+            }
+            "!raw" => {
+                let mut raw_message = String::new();
+                println!("Type in the raw IRC message:");
+                stdin().read_line(&mut raw_message).unwrap();
+                raw_message = format!("{}\r\n", raw_message.trim());
+                stream.write(raw_message.as_bytes()).unwrap();
+                stream.flush().unwrap();
+            }
             _ => {
                 if String::is_empty(&current_channel) {
                     exo_error("Select a channel! (!ch {{channel name}})");
@@ -143,19 +155,30 @@ fn exo_info(message: &str) {
     execute!(
         stdout(),
         SetForegroundColor(Color::Blue),
-        Print(format!("{}:{}:{}", now.hour(), now.minute(), now.second())),
+        Print(format!(
+            "{:02}:{:02}:{:02}",
+            now.hour(),
+            now.minute(),
+            now.second()
+        )),
         ResetColor,
         Print(format!(" {}\n", message))
     )
     .unwrap()
 }
 
+#[cfg(debug_assertions)]
 fn exo_debug(message: &str) {
     let now = Utc::now();
     execute!(
         stdout(),
         SetForegroundColor(Color::Blue),
-        Print(format!("{}:{}:{}", now.hour(), now.minute(), now.second())),
+        Print(format!(
+            "{:02}:{:02}:{:02}",
+            now.hour(),
+            now.minute(),
+            now.second()
+        )),
         SetForegroundColor(Color::Yellow),
         Print(" DEBUG"),
         ResetColor,
@@ -164,12 +187,20 @@ fn exo_debug(message: &str) {
     .unwrap()
 }
 
+#[cfg(not(debug_assertions))]
+fn exo_debug(_message: &str) {}
+
 fn exo_sysmsg(message: &str) {
     let now = Utc::now();
     execute!(
         stdout(),
         SetForegroundColor(Color::Blue),
-        Print(format!("{}:{}:{}", now.hour(), now.minute(), now.second())),
+        Print(format!(
+            "{:02}:{:02}:{:02}",
+            now.hour(),
+            now.minute(),
+            now.second()
+        )),
         SetForegroundColor(Color::Magenta),
         Print(" INFO"),
         ResetColor,
