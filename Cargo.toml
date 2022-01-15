@@ -1,0 +1,22 @@
+[package]
+name = "exoirc"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+"crossterm" = { version = "0.22.1", default-features = false }
+"chrono" = { version = "0.4.19", default-features = false, features = [
+    "clock",
+] }
+
+[profile.release]
+strip = "symbols"
+opt-level = 3
+debug = 0
+lto = true
+panic = "unwind"
+overflow-checks = true
+debug-assertions = false
+codegen-units = 1
