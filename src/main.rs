@@ -41,21 +41,22 @@ fn main() {
     loop {
         stdin().read_line(&mut input).unwrap();
         input = input.trim().to_owned();
-        let splitted_input = input.split(" ").collect::<Vec<&str>>();
+        let splitted_input = input.split(' ').collect::<Vec<&str>>();
         match splitted_input[0] {
             "!ch" => {
                 if splitted_input.len() < 2 {
                     exo_error("Please provide a channel name!");
                 } else {
-                    if current_channel != "" {
+                    //if current_channel != "" {
+                    if !current_channel.is_empty() {
                         stream
-                            .write(format!("PART {}\r\n", current_channel).as_bytes())
+                            .write_all(format!("PART {}\r\n", current_channel).as_bytes())
                             .unwrap();
                         stream.flush().unwrap();
                     }
                     current_channel = splitted_input[1].to_owned();
                     stream
-                        .write(format!("JOIN {}\r\n", current_channel).as_bytes())
+                        .write_all(format!("JOIN {}\r\n", current_channel).as_bytes())
                         .unwrap();
                     stream.flush().unwrap();
                 }
@@ -64,20 +65,19 @@ fn main() {
                 exo_sysmsg(&format!("The current channel is {}", current_channel));
             }
             "!q" => {
-                let reason;
-                if splitted_input.len() < 2 {
-                    reason = "Leaving.";
+                let reason = if splitted_input.len() < 2 {
+                    "Leaving."
                 } else {
-                    reason = splitted_input[1];
-                }
+                    splitted_input[1]
+                };
                 stream
-                    .write(format!("QUIT {}\r\n", reason).as_bytes())
+                    .write_all(format!("QUIT {}\r\n", reason).as_bytes())
                     .unwrap();
                 stream.flush().unwrap();
                 return;
             }
             "!ls" => {
-                stream.write("LIST\r\n".as_bytes()).unwrap();
+                stream.write_all("LIST\r\n".as_bytes()).unwrap();
                 stream.flush().unwrap();
             }
             "!raw" => {
@@ -85,7 +85,7 @@ fn main() {
                 println!("Type in the raw IRC message:");
                 stdin().read_line(&mut raw_message).unwrap();
                 raw_message = format!("{}\r\n", raw_message.trim());
-                stream.write(raw_message.as_bytes()).unwrap();
+                stream.write_all(raw_message.as_bytes()).unwrap();
                 stream.flush().unwrap();
             }
             _ => {
@@ -93,7 +93,7 @@ fn main() {
                     exo_error("Select a channel! (!ch {{channel name}})");
                 } else {
                     stream
-                        .write(format!("PRIVMSG {} :{}\r\n", current_channel, input).as_bytes())
+                        .write_all(format!("PRIVMSG {} :{}\r\n", current_channel, input).as_bytes())
                         .unwrap();
                     stream.flush().unwrap();
                 }
@@ -109,13 +109,13 @@ fn handle_messages(stream_var: TcpStream) {
 
     loop {
         reader.read_line(&mut data).unwrap();
-        let splitted_data = data.split(" ").collect::<Vec<&str>>();
+        let splitted_data = data.split(' ').collect::<Vec<&str>>();
         match splitted_data[0] {
             "PING" => {
                 exo_debug("Got pinged!");
                 let mut tmp_stream = stream_var.try_clone().unwrap();
                 tmp_stream
-                    .write(format!("PONG {}", splitted_data[1]).as_bytes())
+                    .write_all(format!("PONG {}", splitted_data[1]).as_bytes())
                     .unwrap();
                 tmp_stream.flush().unwrap();
             }
@@ -129,12 +129,12 @@ fn handle_messages(stream_var: TcpStream) {
 
 fn login(mut stream: TcpStream, nickname: String) {
     stream
-        .write(format!("NICK {}\r\n", nickname).as_bytes())
+        .write_all(format!("NICK {}\r\n", nickname).as_bytes())
         .unwrap();
     stream.flush().unwrap();
 
     stream
-        .write(format!("USER {} 0 * :{}\r\n", nickname, nickname).as_bytes())
+        .write_all(format!("USER {} 0 * :{}\r\n", nickname, nickname).as_bytes())
         .unwrap();
     stream.flush().unwrap();
 }
